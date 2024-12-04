@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import useIsomorphicLayoutEffect from './useIsomorphicLayoutEffect';
 import { isBrowser, noop } from './misc/util';
+import useIsomorphicLayoutEffect from './useIsomorphicLayoutEffect';
 
 export type UseMeasureRect = Pick<
   DOMRectReadOnly,
   'x' | 'y' | 'top' | 'left' | 'right' | 'bottom' | 'height' | 'width'
 >;
-export type UseMeasureRef<E extends Element = Element> = (element: E) => void;
+export type UseMeasureRef<E extends Element = Element> = (element: E | null) => void;
 export type UseMeasureResult<E extends Element = Element> = [UseMeasureRef<E>, UseMeasureRect];
 
 const defaultState: UseMeasureRect = {
@@ -24,14 +24,14 @@ function useMeasure<E extends Element = Element>(): UseMeasureResult<E> {
   const [element, ref] = useState<E | null>(null);
   const [rect, setRect] = useState<UseMeasureRect>(defaultState);
 
-  const observer = useMemo(
+  const observer: ResizeObserver = useMemo(
     () =>
-      new (window as any).ResizeObserver((entries) => {
+      new (window as any).ResizeObserver(((entries) => {
         if (entries[0]) {
           const { x, y, width, height, top, left, bottom, right } = entries[0].contentRect;
           setRect({ x, y, width, height, top, left, bottom, right });
         }
-      }),
+      }) as ResizeObserverCallback),
     []
   );
 
